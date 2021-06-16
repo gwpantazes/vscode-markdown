@@ -1,6 +1,7 @@
 'use strict';
 
-import { commands, env, ExtensionContext, Position, Range, Selection, SnippetString, TextDocument, TextEditor, window, workspace, WorkspaceEdit } from 'vscode';
+import { ExtensionContext, Position, Range, Selection, SnippetString, TextDocument, TextEditor, WorkspaceEdit, commands, env, window, workspace } from 'vscode';
+
 import { fixMarker } from './listEditing';
 
 export function activate(context: ExtensionContext) {
@@ -15,6 +16,7 @@ export function activate(context: ExtensionContext) {
         commands.registerCommand('markdown.extension.editing.toggleHeadingDown', toggleHeadingDown),
         commands.registerCommand('markdown.extension.editing.toggleList', toggleList),
         commands.registerCommand('markdown.extension.editing.toggleCodeBlock', toggleCodeBlock),
+        commands.registerCommand('markdown.extension.editing.toggleBlockQuote', toggleBlockQuote),
         commands.registerCommand('markdown.extension.editing.paste', paste),
         commands.registerCommand('markdown.extension.editing._wrapBy', args => styleByWrapping(args['before'], args['after']))
     );
@@ -43,6 +45,39 @@ function toggleCodeSpan() {
 function toggleCodeBlock() {
     let editor = window.activeTextEditor;
     return editor.insertSnippet(new SnippetString('```$0\n$TM_SELECTED_TEXT\n```'));
+}
+
+function toggleBlockQuote() {
+    const editor = window.activeTextEditor;
+    const doc = editor.document;
+    let batchEdit = new WorkspaceEdit();
+
+    editor.selections.forEach(selection => {
+        if (selection.isEmpty) {
+            toggleBlockQuoteSingleLine(doc, selection.active.line, batchEdit);
+        } else {
+            for (let i = selection.start.line; i <= selection.end.line; i++) {
+                toggleBlockQuoteSingleLine(doc, i, batchEdit);
+            }
+        }
+    });
+
+    return workspace.applyEdit(batchEdit);
+}
+
+function toggleBlockQuoteSingleLine(doc: TextDocument, line: number, wsEdit: WorkspaceEdit) {
+    const lineText = doc.lineAt(line).text;
+    const trimmedLineText = lineText.trim();
+    const indentation = trimmedLineText.length === 0 ? lineText.length : lineText.indexOf(trimmedLineText);
+    const lineTextContent = lineText.substr(indentation);
+
+    const isWithinValidBlockQuoteIndentRange = indentation >= 0 && indentation <= 3;
+    if (isWithinValidBlockQuoteIndentRange && lineTextContent.startsWith(">")) {
+        const quoteLeadingSize = lineTextContent.charAt(1) === " " ? 2 : 1;
+        wsEdit.delete(doc.uri, new Range(line, indentation, line, indentation + quoteLeadingSize));
+    } else {
+        wsEdit.insert(doc.uri, new Position(line, 0), "> ");
+    }
 }
 
 function toggleStrikethrough() {

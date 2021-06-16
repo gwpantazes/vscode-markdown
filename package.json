@@ -115,6 +115,11 @@
                 "command": "markdown.extension.editing.toggleCodeBlock",
                 "title": "%command.editing.toggleCodeBlock.title%",
                 "category": "Markdown All in One"
+            },
+            {
+                "command": "markdown.extension.editing.toggleBlockQuote",
+                "title": "%command.editing.toggleBlockQuote.title%",
+                "category": "Markdown All in One"
             }
         ],
         "keybindings": [

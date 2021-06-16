@@ -171,6 +171,7 @@ Tip: also support the option `completion.root`
 - Markdown All in One: Remove section numbers
 - Markdown All in One: Toggle code span
 - Markdown All in One: Toggle code block
+- Markdown All in One: Toggle block quote
 - Markdown All in One: Print current document to HTML
 - Markdown All in One: Print documents to HTML
 - Markdown All in One: Toggle math environment
